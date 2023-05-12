@@ -14,12 +14,13 @@ class Customer {
     this.lastName = lastName;
     this.phone = phone;
     this.notes = notes;
+    this._notes = ''; //TODO: ????
+    this.fullName = setFullName(firstName, lastName);
   }
 
+  /** find all customers (by name). */
 
-  /** find all customers. */
-
-  static async all() {
+  static async all(name='') {
     const results = await db.query(
       `SELECT id,
                   first_name AS "firstName",
@@ -27,9 +28,11 @@ class Customer {
                   phone,
                   notes
            FROM customers
+           WHERE CONCAT(first_name, ' ', last_name) ILIKE $1
            ORDER BY last_name, first_name`,
+           [`%${name}%`]
     );
-    return results.rows.map(c => new Customer(c));
+    return results.rows.map((c) => new Customer(c));
   }
 
   /** find top ten customers. */
@@ -41,16 +44,15 @@ class Customer {
                   c.last_name  AS "lastName",
                   c.phone,
                   c.notes,
-                  count(*) as num_reservations
            FROM customers AS c
-           JOIN reservations ON reservations.customer_id = c.id
+           JOIN reservations AS r
+            ON r.customer_id = c.id
            GROUP BY c.id
-           ORDER BY count(*) DESC
-           LIMIT 10`,
+           ORDER BY count(c.id) DESC
+           LIMIT 10`
     );
     return results.rows.map(c => new Customer(c));
   }
-
 
   /** get a customer by ID. */
 
@@ -63,7 +65,7 @@ class Customer {
                   notes
            FROM customers
            WHERE id = $1`,
-      [id],
+      [id]
     );
 
     const customer = results.rows[0];
@@ -77,31 +79,6 @@ class Customer {
     return new Customer(customer);
   }
 
-  /** get a customer by name. */
-
-  static async getByName(name) {
-    let firstName;
-    let lastName;
-    if(name.includes(" ")){
-    [firstName, lastName] = name.split(" ")
-    } else {
-      firstName = name
-      lastName = name
-    }
-
-    const results = await db.query(
-      `SELECT id,
-          first_name AS "firstName",
-          last_name  AS "lastName",
-          phone,
-          notes
-        FROM customers
-        WHERE first_name ILIKE $1 OR last_name ILIKE $2`,
-      [firstName + "%", lastName + "%"],
-    );
-
-    return results.rows.map(c => new Customer(c));
-  }
 
   /** get all reservations for this customer. */
 
@@ -117,7 +94,7 @@ class Customer {
         `INSERT INTO customers (first_name, last_name, phone, notes)
              VALUES ($1, $2, $3, $4)
              RETURNING id`,
-        [this.firstName, this.lastName, this.phone, this.notes],
+        [this.firstName, this.lastName, this.phone, this.notes]
       );
       this.id = result.rows[0].id;
     } else {
@@ -127,19 +104,20 @@ class Customer {
                  last_name=$2,
                  phone=$3,
                  notes=$4
-             WHERE id = $5`, [
-        this.firstName,
-        this.lastName,
-        this.phone,
-        this.notes,
-        this.id,
-      ],
+             WHERE id = $5`,
+        [this.firstName, this.lastName, this.phone, this.notes, this.id]
       );
     }
   }
 
-  fullName() {
-    return `${this.firstName} ${this.lastName}`;
+  /** Returns full name.*/
+
+  getFullName() {
+    return this.fullName;
+  }
+
+  setFullName(firstName, lastName) {
+    this.fullName =` ${firstName} ${lastName}`;
   }
 }
 

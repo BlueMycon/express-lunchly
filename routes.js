@@ -21,7 +21,7 @@ router.get("/", async function (req, res, next) {
 
 router.get("/search", async function (req, res, next) {
   const searchName = req.query.search;
-  const customers = await Customer.getByName(searchName);
+  const customers = await Customer.all(searchName);
 
   return res.render("customer_list.html", { customers });
 });
@@ -88,7 +88,7 @@ router.post("/:id/edit/", async function (req, res, next) {
   return res.redirect(`/${customer.id}/`);
 });
 
-/** Handle adding a new reservation. */
+/** Handle adding a reservation. */
 
 router.post("/:id/add-reservation/", async function (req, res, next) {
   if (req.body === undefined) {
