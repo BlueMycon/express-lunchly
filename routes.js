@@ -17,6 +17,24 @@ router.get("/", async function (req, res, next) {
   return res.render("customer_list.html", { customers });
 });
 
+/** Homepage: search list of customers by name. */
+
+router.get("/search", async function (req, res, next) {
+  const searchName = req.query.search;
+  const customers = await Customer.getByName(searchName);
+
+  return res.render("customer_list.html", { customers });
+});
+
+/** Homepage: search list top ten customers. */
+
+router.get("/top-ten", async function (req, res, next) {
+  const customers = await Customer.getTopTen();
+
+  return res.render("customer_list.html", { customers });
+});
+
+
 /** Form to add a new customer. */
 
 router.get("/add/", async function (req, res, next) {
