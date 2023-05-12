@@ -15,7 +15,9 @@ class Customer {
     this.phone = phone;
     this.notes = notes;
     this._notes = ''; //TODO: ????
-    this.fullName = setFullName(firstName, lastName);
+    this.fullName;
+
+    this.setFullName(firstName, lastName);
   }
 
   /** find all customers (by name). */
@@ -117,7 +119,7 @@ class Customer {
   }
 
   setFullName(firstName, lastName) {
-    this.fullName =` ${firstName} ${lastName}`;
+    this.fullName = `${firstName} ${lastName}`;
   }
 }
 
