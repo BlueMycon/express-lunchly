@@ -27,8 +27,20 @@ class Reservation {
     return moment(this.startAt).format("MMMM Do YYYY, h:mm a");
   }
 
-  /** given a customer id, find their reservations. */
+  /** Validates start date */
 
+  setStartAt(startAt) {
+    let startDate = new Date(startAt);
+
+    if (startDate.toString() === 'Invalid Date') {
+      throw new BadRequestError("Not a valid date");
+    }
+
+    this.startAt = startDate;
+  }
+
+  /** given a customer id, find their reservations. */
+  // TODO: should this also get a single reservation
   static async getReservationsForCustomer(customerId) {
     const results = await db.query(
       `SELECT id,
@@ -43,6 +55,24 @@ class Reservation {
 
     return results.rows.map((row) => new Reservation(row));
   }
+
+
+  /** given a customer id, find their reservations. */
+  static async get(reservationId) {
+    const results = await db.query(
+      `SELECT id,
+                  customer_id AS "customerId",
+                  num_guests AS "numGuests",
+                  start_at AS "startAt",
+                  notes AS "notes"
+           FROM reservations
+           WHERE id = $1`,
+      [reservationId]
+    );
+
+    return new Reservation(results.rows[0]);
+  }
+
 
   /** save this reservation. */
 
@@ -68,11 +98,13 @@ class Reservation {
   }
 
   /** Get number of guest for reservation */
+
   getNumGuests() {
     return this.numGuests;
   }
 
   /** Validates number of guest is greater than 0 */
+
   setNumGuests(num) {
     if (num < 1) {
       throw new BadRequestError("Number of guests must be 1 or more.");
@@ -80,17 +112,15 @@ class Reservation {
     this.numGuests = num;
   }
 
-  /** Validates start date */
-  setStartAt(startAt) {
-    let startDate = new Date(startAt);
+  /** Validates customer id matches reservation */
 
-    if (startDate.toString() === 'Invalid Date') {
-      throw new BadRequestError("Not a valid date");
+  setCustomerId(customerId) {
+    customerId = Number(customerId);
+    if (customerId !== this.customerId) {
+      throw new BadRequestError("You can't give your reservation away!");
     }
-
-    this.startAt = startDate;
+    this.customerId = customerId;
   }
-
 }
 
 module.exports = Reservation;

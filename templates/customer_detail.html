@@ -24,6 +24,7 @@
             <li>
               <b>{{ reservation.getFormattedStartAt() }}</b>
               for {{ reservation.getNumGuests() }}
+              <a class="btn btn-primary d-inline" href="/{{ customer.id }}/edit-reservation/{{ reservation.id }}">Edit</a>
             </li>
           {% endfor %}
         </ul>
